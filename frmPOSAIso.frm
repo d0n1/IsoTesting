@@ -1058,6 +1058,8 @@ End If
 
 '2. Save data
     
+txtSN.Text = Replace(Trim(txtSN.Text), " ", "")
+txtWO.Text = Replace(Trim(txtWO.Text), " ", "")
 
 If CalcRawData = True Then
     calDataPath = "D:\\POSA Result\\Cal Data"
