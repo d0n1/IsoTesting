@@ -1,0 +1,41 @@
+[GPIB Setting]
+TSL = 1
+OPM = 20
+SPU = 1
+
+[Measure Setting]
+SampleStep = 0.001
+SweepSpeed_S = 10
+SweepSpeed_R = 40 
+SourcePower = 0
+PowerRange = 30
+ScanTimes = 2
+
+[Default WO]
+ChannelNum = 4
+
+StartWav0 = 1285
+StopWav0 = 1320
+IsoTestPoint0 = 1305.935;1307.79;1310.49;1312.29
+IsoSpec0 = 25;25
+
+StartWav1 = 1302
+StopWav1 = 1314
+IsoTestPoint1 = 1305.935;1307.79;1310.49;1312.29
+IsoSpec1 = 25;25
+
+StartWav2 = 1297
+StopWav2 = 1310
+IsoTestPoint2 = 1301.39;1303.235;1305.935;1307.79
+IsoSpec2 = 25;25
+
+StartWav3 = 1292
+StopWav3 = 1305
+IsoTestPoint3= 1296.89;1298.72;1301.39;1303.235
+IsoSpec3 = 25;25
+
+StartWav4 = 1288
+StopWav4 = 1300
+IsoTestPoint4 = 1292.39;1294.23;1296.89;1298.72
+IsoSpec4 = 25;25
+

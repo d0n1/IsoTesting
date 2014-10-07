@@ -1,0 +1,36 @@
+[GPIB Setting]
+TSL = 1
+OPM = 20
+SPU = 1
+
+[Measure Setting]
+SampleStep = 0.005
+SweepSpeed = 10
+AverageTime = 0.001
+SourcePower = 0
+PowerRange = 30
+ScanTimes = 1
+
+[DW8-2100-AA045]
+ChannelNum = 4
+
+StartWav1 = 1302
+StopWav1 = 1314
+Segment1 = 1305.935;1307.79;1310.49;1312.29
+IsoDelta1 = 25;25
+
+StartWav2 = 1297
+StopWav2 = 1310
+Segment2 = 1301.405;1303.235;1305.935;1307.79
+IsoDelta2 = 25;25
+
+StartWav3 = 1292
+StopWav3 = 1305
+Segment3= 1296.91;1298.705;1301.405;1303.235
+IsoDelta3 = 25;25
+
+StartWav4 = 1288
+StopWav4 = 1300
+Segment4 = 1292.41;1294.21;1296.91;1298.705
+IsoDelta4 = 25;25
+
