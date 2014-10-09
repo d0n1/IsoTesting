@@ -1,3 +1,8 @@
+;Add IL Segment/Spec in Oct 8th
+;IL Sepc should be set as ILSpecX = LowerBound;UpperBound
+;Add IL Detla in Oct 9th
+;IL Delta should be set as ILDetlaX = LeftBound;RightBound
+
 [GPIB Setting]
 TSL = 1
 OPM = 20
@@ -16,26 +21,40 @@ ChannelNum = 4
 
 StartWav0 = 1285
 StopWav0 = 1320
-IsoTestPoint0 = 1305.935;1307.79;1310.49;1312.29
+IsoTestPoint0 = 1305.91;1307.75;1310.47;1312.5
 IsoSpec0 = 25;25
+ILTestSeg0 = 1308.09;1310.19
+ILSpec0 = -1;0
+ILDelta0 = 0.34;0.28
 
 StartWav1 = 1302
 StopWav1 = 1314
-IsoTestPoint1 = 1305.935;1307.79;1310.49;1312.29
-IsoSpec1 = 25;25
+IsoTestPoint1 = 1305.91;1307.75;1310.47;1312.33
+IsoSpec1 = 25;0
+ILTestSeg1 = 1308.09;1310.19
+ILSpec1 = -1;0
+ILDelta1 = 0.34;0.28
 
 StartWav2 = 1297
 StopWav2 = 1310
-IsoTestPoint2 = 1301.39;1303.235;1305.935;1307.79
+IsoTestPoint2 = 1301.37;1303.20;1305.91;1307.75
 IsoSpec2 = 25;25
+ILTestSeg2 = 1303.54;1305.63
+ILSpec2 = -1;0
+ILDelta2 = 0.34;0.28
 
 StartWav3 = 1292
 StopWav3 = 1305
-IsoTestPoint3= 1296.89;1298.72;1301.39;1303.235
+IsoTestPoint3= 1296.87;1298.68;1301.37;1303.20
 IsoSpec3 = 25;25
+ILTestSeg3 = 1299.02;1301.09
+ILSpec3 = -1;0
+ILDelta3 = 0.34;0.28
 
 StartWav4 = 1288
 StopWav4 = 1300
-IsoTestPoint4 = 1292.39;1294.23;1296.89;1298.72
-IsoSpec4 = 25;25
-
+IsoTestPoint4 = 1290;1294.19;1296.87;1298.68
+IsoSpec4 = 0;25
+ILTestSeg4 = 1294.53;1296.59
+ILSpec4 = -1;0
+ILDelta4 = 0.34;0.28

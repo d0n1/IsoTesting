@@ -1,3 +1,0 @@
-"2014-06-16 08:45:27 --> Error: 52 , 错误文件名或数--> From: LoadPresetFile , @Line: 0"
-"2014-06-16 11:49:36 --> Error: 13 , 类型不匹配--> From: SaveCalData , @Line: 0"
-"2014-06-16 11:49:52 --> Error: 13 , 类型不匹配--> From: SaveCalData , @Line: 0"

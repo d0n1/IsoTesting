@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin VB.Form frmPOSAIso 
-   Caption         =   "POSA Iso Testing Ver. 2.4"
+   Caption         =   "POSA Iso Testing Ver. 3.141010"
    ClientHeight    =   10110
    ClientLeft      =   60
    ClientTop       =   450
@@ -394,12 +394,12 @@ Begin VB.Form frmPOSAIso
          Width           =   735
       End
       Begin VB.Label Label10 
-         Caption         =   "Iso Spec :"
+         Caption         =   "Iso/IL Spec :"
          Height          =   615
          Left            =   120
          TabIndex        =   16
          Top             =   2760
-         Width           =   1335
+         Width           =   1485
       End
       Begin VB.Label Label9 
          Caption         =   "Iso TPoint :"
@@ -410,7 +410,7 @@ Begin VB.Form frmPOSAIso
          Width           =   1815
       End
       Begin VB.Label Label8 
-         Caption         =   "WO :"
+         Caption         =   "PN :"
          Height          =   615
          Left            =   120
          TabIndex        =   14
@@ -528,6 +528,9 @@ Private Type tTestSpec
     dblStopWav As Double
     strIsoTestPoint() As String
     strIsoSpec() As String
+    strILTestSeg() As String
+    strILDelta() As String
+    strILSpec() As String
 
 End Type
 
@@ -562,7 +565,7 @@ Private Sub InitPlotArea(x1 As Double, x2 As Double, y1 As Double, y2 As Double)
     
     Picture1.Cls
     Picture1.Scale (x1, y2)-(x2, y1)
-    'Picture1.AutoRedraw = True
+'    Picture1.AutoRedraw = True
 '    Picture1.Scale (X1, Y1)-(X2, Y2)
     Picture1.DrawWidth = 1
     lblX(0).Caption = x1
@@ -603,7 +606,8 @@ Private Sub DisplaySpec(ByVal pCH As Integer)
     txtStartWav.Text = CHSpec(pCH).dblStartWav
     txtStopWav.Text = CHSpec(pCH).dblStopWav
     txtTestPoint.Text = Join(CHSpec(pCH).strIsoTestPoint, ";")
-    txtIsoSpec.Text = Join(CHSpec(pCH).strIsoSpec, ";")
+    txtIsoSpec.Text = Join(CHSpec(pCH).strIsoSpec, ";") & " | " & Join(CHSpec(pCH).strILSpec, ";") & " | " & Join(CHSpec(pCH).strILDelta, ";")
+    
 
 End Sub
 
@@ -629,6 +633,9 @@ On Error GoTo ErrorHandle
         CHSpec(I).dblStopWav = INIRead(pPN, "StopWav" & I, App.Path & "\\Settings")
         CHSpec(I).strIsoTestPoint = Split(INIRead(pPN, "IsoTestPoint" & I, App.Path & "\\Settings"), ";")
         CHSpec(I).strIsoSpec = Split(INIRead(pPN, "IsoSpec" & I, App.Path & "\\Settings"), ";")
+        CHSpec(I).strILTestSeg = Split(INIRead(pPN, "ILTestSeg" & I, App.Path & "\\Settings"), ";")
+        CHSpec(I).strILSpec = Split(INIRead(pPN, "ILSpec" & I, App.Path & "\\Settings"), ";")
+        CHSpec(I).strILDelta = Split(INIRead(pPN, "ILDelta" & I, App.Path & "\\Settings"), ";")
     Next I
     
     
@@ -789,10 +796,14 @@ Private Function CalcRawData() As Boolean
     Dim I As Long
     Dim intMaxIndex As Long
     Dim maxILIndex As Long
+    Dim minILIndex As Long
+    Dim minILIndex2 As Long
     Dim maxIL As Double
     Dim minIL As Double
+    Dim minIL2 As Double
     Dim CHNum As Integer
     Dim tempIndex(3) As Integer
+    Dim tempILIndex(1) As Integer
     Dim dblSampleStep As Double
     On Error GoTo ErrorHandle
         
@@ -801,6 +812,8 @@ Private Function CalcRawData() As Boolean
     intMaxIndex = UBound(dblWLData())
     maxIL = -999.99
     minIL = 999.99
+    minIL2 = 999.99
+    
     CHNum = Val(cboCH.Text)
     dblSampleStep = 0.001
     strStatus = "Passed"
@@ -808,6 +821,9 @@ Private Function CalcRawData() As Boolean
     tempIndex(1) = CInt((Val(CHSpec(CHNum).strIsoTestPoint(1)) - CHSpec(CHNum).dblStartWav) / dblSampleStep)
     tempIndex(2) = CInt((Val(CHSpec(CHNum).strIsoTestPoint(2)) - CHSpec(CHNum).dblStartWav) / dblSampleStep)
     tempIndex(3) = CInt((Val(CHSpec(CHNum).strIsoTestPoint(3)) - CHSpec(CHNum).dblStartWav) / dblSampleStep)
+    
+    tempILIndex(0) = CInt((Val(CHSpec(CHNum).strILTestSeg(0)) - CHSpec(CHNum).dblStartWav) / dblSampleStep)
+    tempILIndex(1) = CInt((Val(CHSpec(CHNum).strILTestSeg(1)) - CHSpec(CHNum).dblStartWav) / dblSampleStep)
     
     '0 Clear the textboxs' colors
     txtBW.BackColor = &H80000005
@@ -841,35 +857,80 @@ Private Function CalcRawData() As Boolean
         Exit Function
     End If
     
-    '1. find the top IL point..(maxIL)
+    '1. find the top IL point..(maxIL),ITU_IL(minIL)
     For I = 0 To intMaxIndex
-    
+
         If dblILData(I) > maxIL Then
             maxIL = dblILData(I)
             maxILIndex = I
         End If
+
+    Next I
+    
+
+
+    'minIL in IL bandwith
+    For I = tempILIndex(0) To tempILIndex(1)
+    
+        If dblILData(I) < minIL Then
+            minIL = dblILData(I)
+            minILIndex = I
+        End If
     
     Next I
-    '=============================从中间往两边找=====================================
-    '2. 0.5dB down of MaxIL point
-    For I = maxILIndex To 1 Step -1
-        If dblILData(I) + 0.5 - maxIL > 0# And dblILData(I - 1) + 0.5 - maxIL < 0# Then
+    CHData(CHNum).dblIL_ITU = minIL
+    
+    'minIl in Iso Bandwith
+    
+    For I = tempIndex(1) To tempIndex(2)
+        If dblILData(I) < minIL2 Then
+            minIL2 = dblILData(I)
+            minILIndex2 = I
+        End If
+    Next I
+    
+        '=============================从中间往两边找=====================================
+    '2. 0.5dB down of minIL point
+    For I = minILIndex To 1 Step -1
+        If dblILData(I) + 0.5 - minIL > 0# And dblILData(I - 1) + 0.5 - minIL < 0# Then
             CHData(CHNum).dblWL_dBDown(0) = dblWLData(I - 1)
             CHData(CHNum).dblIL_dBDown(0) = dblILData(I - 1)
             Exit For
         End If
     Next I
-    
-    For I = maxILIndex + 1 To intMaxIndex - 1
-    
-        If dblILData(I) + 0.5 - maxIL > 0# And dblILData(I + 1) + 0.5 - maxIL < 0# Then
-        
+
+    For I = minILIndex + 1 To intMaxIndex - 1
+
+        If dblILData(I) + 0.5 - minIL > 0# And dblILData(I + 1) + 0.5 - minIL < 0# Then
+
             CHData(CHNum).dblWL_dBDown(1) = dblWLData(I + 1)
             CHData(CHNum).dblIL_dBDown(1) = dblILData(I + 1)
             Exit For
         End If
-    
+
     Next I
+    
+    
+'    '=============================从中间往两边找=====================================
+'    '2. 0.5dB down of MaxIL point
+'    For I = maxILIndex To 1 Step -1
+'        If dblILData(I) + 0.5 - maxIL > 0# And dblILData(I - 1) + 0.5 - maxIL < 0# Then
+'            CHData(CHNum).dblWL_dBDown(0) = dblWLData(I - 1)
+'            CHData(CHNum).dblIL_dBDown(0) = dblILData(I - 1)
+'            Exit For
+'        End If
+'    Next I
+'
+'    For I = maxILIndex + 1 To intMaxIndex - 1
+'
+'        If dblILData(I) + 0.5 - maxIL > 0# And dblILData(I + 1) + 0.5 - maxIL < 0# Then
+'
+'            CHData(CHNum).dblWL_dBDown(1) = dblWLData(I + 1)
+'            CHData(CHNum).dblIL_dBDown(1) = dblILData(I + 1)
+'            Exit For
+'        End If
+'
+'    Next I
     '===============================================================================
     '*******************************************************************************
     '=============================从两边往中间找=====================================
@@ -879,14 +940,14 @@ Private Function CalcRawData() As Boolean
     '
     '        CHData(CHNum).dblWL_dBDown(0) = dblWLData(I - 1)
     '        CHData(CHNum).dblIL_dBDown(0) = dblILData(I - 1)
-    '        Exit For
+
     '    End If
     '
     '    If dblILData(intMaxIndex - I) + 0.5 - maxIL < 0# And dblILData(intMaxIndex - I - 1) + 0.5 - maxIL > 0# Then
     '
     '        CHData(CHNum).dblWL_dBDown(1) = dblWLData(intMaxIndex - I)
     '        CHData(CHNum).dblIL_dBDown(1) = dblILData(intMaxIndex - I)
-    '        Exit For
+
     '    End If
     '
     'Next I
@@ -894,21 +955,14 @@ Private Function CalcRawData() As Boolean
     '3. bandwidth,CWL
     CHData(CHNum).dblBandWidth = CHData(CHNum).dblWL_dBDown(1) - CHData(CHNum).dblWL_dBDown(0)
     CHData(CHNum).dblCentWL_ITU = (CHData(CHNum).dblWL_dBDown(0) + CHData(CHNum).dblWL_dBDown(1)) / 2#
-    '4. find ITU_IL(minIL), ISOdelta
-    'minIL
-    For I = tempIndex(1) To tempIndex(2)
-    
-        If dblILData(I) < minIL Then
-            minIL = dblILData(I)
-        End If
-    
-    Next I
-    CHData(CHNum).dblIL_ITU = minIL
+
     'wavelengthDelta,isodelta
     CHData(CHNum).dblWavDelta(0) = CHData(CHNum).dblWL_dBDown(0) - Val(CHSpec(CHNum).strIsoTestPoint(1))
     CHData(CHNum).dblWavDelta(1) = CHData(CHNum).dblWL_dBDown(1) - Val(CHSpec(CHNum).strIsoTestPoint(2))
-    CHData(CHNum).dblIsoDelta(0) = Abs(dblILData(tempIndex(1)) - dblILData(tempIndex(0)))
-    CHData(CHNum).dblIsoDelta(1) = Abs(dblILData(tempIndex(2)) - dblILData(tempIndex(3)))
+'    CHData(CHNum).dblIsoDelta(0) = Abs(dblILData(tempIndex(1)) - dblILData(tempIndex(0)))
+'    CHData(CHNum).dblIsoDelta(1) = Abs(dblILData(tempIndex(2)) - dblILData(tempIndex(3)))
+    CHData(CHNum).dblIsoDelta(0) = Abs(dblILData(minILIndex2) - dblILData(tempIndex(0)))
+    CHData(CHNum).dblIsoDelta(1) = Abs(dblILData(minILIndex2) - dblILData(tempIndex(3)))
     
     '5.display data
     txtBW.Text = Format(CHData(CHNum).dblBandWidth, "#.###")
@@ -952,40 +1006,56 @@ Private Function CalcRawData() As Boolean
     Else
         txtWLDelta_R.BackColor = mLightGreen
     End If
-    'update 2014 Jun.17th
-    'add 如果WLDelta_Left（J列）或WLDelta_Right （M列）的绝对值小于0.1nm，
-    '则必须保证0.5dB带宽（H列和K列之差）〉= 2.9nm
-    
-    If CHData(CHNum).dblWavDelta(0) < 0 And Abs(CHData(CHNum).dblWavDelta(0)) < 0.1 Then
-        txtWLDelta_L.BackColor = mLightYellow
-        If CHData(CHNum).dblBandWidth < 2.9 Then
-            txtBW.BackColor = mLightRed
-            strStatus = "Failed"
-        End If
-    End If
-    
-    If CHData(CHNum).dblWavDelta(1) > 0 And Abs(CHData(CHNum).dblWavDelta(1)) < 0.1 Then
-        txtWLDelta_R.BackColor = mLightYellow
-        If CHData(CHNum).dblBandWidth < 2.9 Then
-            txtBW.BackColor = mLightRed
-            strStatus = "Failed"
-        End If
-    End If
+'    'update 2014 Jun.17th
+'    'add 如果WLDelta_Left（J列）或WLDelta_Right （M列）的绝对值小于0.1nm，
+'    '则必须保证0.5dB带宽（H列和K列之差）〉= 2.9nm
+'
+'    If CHData(CHNum).dblWavDelta(0) < 0 And Abs(CHData(CHNum).dblWavDelta(0)) < 0.1 Then
+'        txtWLDelta_L.BackColor = mLightYellow
+'        If CHData(CHNum).dblBandWidth < 2.9 Then
+'            txtBW.BackColor = mLightRed
+'            strStatus = "Failed"
+'        End If
+'    End If
+'
+'    If CHData(CHNum).dblWavDelta(1) > 0 And Abs(CHData(CHNum).dblWavDelta(1)) < 0.1 Then
+'        txtWLDelta_R.BackColor = mLightYellow
+'        If CHData(CHNum).dblBandWidth < 2.9 Then
+'            txtBW.BackColor = mLightRed
+'            strStatus = "Failed"
+'        End If
+'    End If
     '============IL===============
-    If CHData(CHNum).dblIL_ITU > 0 Or CHData(CHNum).dblIL_ITU < -1 Then
+    If CHData(CHNum).dblIL_ITU > Val(CHSpec(CHNum).strILSpec(1)) Or CHData(CHNum).dblIL_ITU < Val(CHSpec(CHNum).strILSpec(0)) Then
         txtIL.BackColor = mLightRed
         strStatus = "Failed"
     Else
         txtIL.BackColor = mLightGreen
     End If
     
-    If maxIL > 0 Then
+    If maxIL > Val(CHSpec(CHNum).strILSpec(1)) Or maxIL < Val(CHSpec(CHNum).strILSpec(0)) Then
         txtILMax.BackColor = mLightRed
         strStatus = "Failed"
     Else
         txtILMax.BackColor = mLightGreen
     End If
     
+    '=============IL Boundry================
+    If Abs(CHData(CHNum).dblWL_dBDown(0) - Val(CHSpec(CHNum).strILTestSeg(0))) < Val(CHSpec(CHNum).strILDelta(0)) Then
+        txtWL_L.BackColor = mLightRed
+        strStatus = "Failed"
+    Else
+        txtWL_L.BackColor = mLightGreen
+    
+    End If
+    
+    If Abs(CHData(CHNum).dblWL_dBDown(1) - Val(CHSpec(CHNum).strILTestSeg(1))) < Val(CHSpec(CHNum).strILDelta(1)) Then
+        txtWL_R.BackColor = mLightRed
+        strStatus = "Failed"
+    Else
+        txtWL_R.BackColor = mLightGreen
+    
+    End If
     
     'Display data
     
@@ -1042,17 +1112,20 @@ On Error GoTo ErrorHandle
 '1 general check.
 If txtSN.Text = "" Then
     MsgBox "Pls input a correct SN." & vbCrLf & vbCrLf & "请输入正确的SN."
+    txtSN.SetFocus
     Exit Sub
 End If
 
 If txtWO.Text = "" Then
     MsgBox "Pls input a correct WO." & vbCrLf & vbCrLf & "请输入正确的WO."
+    txtWO.SetFocus
     Exit Sub
 End If
 
 If txtFilePath.Text = "" Then
 
     MsgBox "Pls input a correct path." & vbCrLf & vbCrLf & "请输入正确的保存路径."
+    txtFilePath.SetFocus
     Exit Sub
 End If
 
@@ -1091,20 +1164,21 @@ Else
 End If
 
 txtSN.Text = ""
-
+txtSN.SetFocus
 Exit Sub
 ErrorHandle:
 
     Call mMakeErrorLog(Err.Number, Err.Description, "cmdSave_Click", Erl)
     Err.Clear
     txtSN.Text = ""
+    txtSN.SetFocus
     
 End Sub
 
 Private Sub Form_Load()
 
 Call LoadSpec("Default WO")
-
+cboMode.ListIndex = 0
 End Sub
 
 
